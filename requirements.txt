@@ -1,0 +1,4 @@
+redis-om
+fastapi
+uvicorn[standard]
+pydantic
