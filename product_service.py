@@ -1,43 +1,108 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from redis_om import HashModel
-from redis_db import redis
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+
+from models import ProductModel
+from schemas import ProductCreate, ProductResponse
+from deps import get_db
 
 app = FastAPI(title="Product Service")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from typing import List
 
-class Product(HashModel):
-    name: str
-    price: float
-    quantity: int
+@app.post("/products/add", response_model=list[ProductResponse])
+def add_multiple_products(
+    products: List[ProductCreate],
+    db: Session = Depends(get_db)
+):
+    
+    db_products = [ProductModel(**product.dict()) for product in products]
+    db.add_all(db_products)
+    db.commit()
 
-    class Meta:
-        database = redis
+    return db_products
 
-@app.get("/")
-def root():
-    return {"message": "Product Service is running"}
 
-@app.post("/products")
-def create_product(product: Product):
-    product.save()
-    return product
 
-@app.get("/products")
-def get_products():
-    return Product.all_pks()
+# ➕ ADD product (COMMITTED)
+# @app.post("/products", response_model=ProductResponse)
+# def add_product(
+#     product: ProductCreate,
+#     db: Session = Depends(get_db)
+# ):
+#     db_product = ProductModel(**product.dict())
+#     db.add(db_product)
 
-@app.get("/products/{pk}")
-def get_product(pk: str):
-    return Product.get(pk)
+#     db.commit()              # ✅ PERMANENT SAVE
+#     db.refresh(db_product)   # get auto-generated ID
 
-@app.get("/products/search")
-def search_products(name: str):
-    return Product.find(Product.name == name).all()
+#     return db_product
+
+
+# 📦 GET all + SEARCH
+@app.get("/products", response_model=list[ProductResponse])
+def get_products(db: Session = Depends(get_db)):
+    return db.query(ProductModel).all()
+
+@app.get("/products/search", response_model=list[ProductResponse])
+def search_products(name:str, db: Session = Depends(get_db)):
+    products = db.query(ProductModel).filter(
+        ProductModel.name.ilike(f"%{name}%")
+    ).all()
+
+    if not products:
+        return {"error": "Product not found"}
+
+    return products
+
+
+
+
+# ✏️ UPDATE product (COMMITTED)
+@app.put("/products/{product_id}")
+def update_product(
+    product_id: int,
+    product: ProductCreate,
+    db: Session = Depends(get_db)
+):
+    db_product = db.query(ProductModel).filter(
+        ProductModel.id == product_id
+    ).first()
+
+    if not db_product:
+        return {"error": "Product not found"}
+
+    db_product.name = product.name
+    db_product.description = product.description
+    db_product.price = product.price
+    db_product.quantity = product.quantity
+
+    db.commit()   # ✅ SAVE UPDATE
+
+    return {"message": "Product updated successfully"}
+
+
+# ❌ DELETE product (COMMITTED)
+@app.delete("/products/{product_id}")
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db)
+):
+    product = db.query(ProductModel).filter(
+        ProductModel.id == product_id
+    ).first()
+
+    if not product:
+        return {"error": "Product not found"}
+
+    db.delete(product)
+    db.commit()   # ✅ SAVE DELETE
+
+    return {"message": "Product deleted successfully"}
+
+
+
+
+
+
+
+
