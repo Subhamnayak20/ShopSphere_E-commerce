@@ -2,3 +2,7 @@ redis-om
 fastapi
 uvicorn[standard]
 pydantic
+passlib[bcrypt]
+python-jose[cryptography]
+cryptography<40
+requests

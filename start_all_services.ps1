@@ -35,6 +35,15 @@ function Start-MyService {
     )
     
     Write-Host "`nStarting $ServiceName on port $Port..." -ForegroundColor Cyan
+
+    # Prefer the workspace venv python if available (use the script-level $scriptDir)
+    $venvPython = Join-Path $scriptDir ".venv\Scripts\python.exe"
+    if (Test-Path $venvPython) {
+        $pythonExe = $venvPython
+    } else {
+        $pythonExe = "python"
+    }
+
     $processArgs = @(
         "-m", "uvicorn",
         "$ModuleName`:app",
@@ -43,7 +52,7 @@ function Start-MyService {
         "--port", $Port.ToString()
     )
     
-    Start-Process python -ArgumentList $processArgs -NoNewWindow -PassThru
+    Start-Process $pythonExe -ArgumentList $processArgs -NoNewWindow -PassThru
 }
 
 # Start all services
@@ -62,7 +71,33 @@ Write-Host "==========================================" -ForegroundColor Green
 
 # Wait for processes
 $processes = @($productProcess, $userProcess, $orderProcess)
-Wait-Process -InputObject $processes -Any
+
+# Wait until any of the started services exits (compatible with PowerShell 5.1+)
+$anyExited = $false
+while (-not $anyExited) {
+    foreach ($p in $processes) {
+        try {
+            if ($p.HasExited) {
+                $anyExited = $true
+                break
+            }
+        } catch {
+            # If the Process object is no longer available, treat it as exited
+            try {
+                $id = $p.Id
+                $proc = Get-Process -Id $id -ErrorAction SilentlyContinue
+                if (-not $proc) {
+                    $anyExited = $true
+                    break
+                }
+            } catch {
+                $anyExited = $true
+                break
+            }
+        }
+    }
+    Start-Sleep -Seconds 1
+}
 
 Write-Host "`nShutting down services..." -ForegroundColor Yellow
 Stop-Process -InputObject $processes -Force -ErrorAction SilentlyContinue
