@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Connection Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Backend Connection Test</h1>
+    <button onclick="testAll()">Test All Services</button>
+    <div id="results"></div>
+
+    <script>
+        async function testService(name, url) {
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                return { name, status: 'success', message: JSON.stringify(data) };
+            } catch (error) {
+                return { name, status: 'error', message: error.message };
+            }
+        }
+
+        async function testAll() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing...</p>';
+            
+            const tests = [
+                testService('Product Service', 'http://127.0.0.1:8000/products'),
+                testService('User Service', 'http://127.0.0.1:8001/'),
+                testService('Order Service', 'http://127.0.0.1:8002/')
+            ];
+
+            const responses = await Promise.all(tests);
+            
+            results.innerHTML = responses.map(r => 
+                `<div class="test ${r.status}">
+                    <strong>${r.name}:</strong> ${r.message}
+                </div>`
+            ).join('');
+        }
+    </script>
+</body>
+</html>

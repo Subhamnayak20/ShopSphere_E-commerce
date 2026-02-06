@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSphere E-commerce</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>🛒 ShopSphere</h1>
+            <div id="authButtons">
+                <button onclick="showLogin()">Login</button>
+                <button onclick="showRegister()">Register</button>
+            </div>
+            <div id="userInfo" style="display:none;">
+                <span id="userEmail"></span>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Auth Section -->
+        <div id="authSection">
+            <div id="loginForm" class="auth-form">
+                <h2>Login</h2>
+                <input type="email" id="loginEmail" placeholder="Email">
+                <input type="password" id="loginPassword" placeholder="Password">
+                <button onclick="login()">Login</button>
+                <p>Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+            </div>
+
+            <div id="registerForm" class="auth-form" style="display:none;">
+                <h2>Register</h2>
+                <input type="email" id="registerEmail" placeholder="Email">
+                <input type="password" id="registerPassword" placeholder="Password">
+                <button onclick="register()">Register</button>
+                <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="mainContent" style="display:none;">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('products')">Products</button>
+                <button class="tab" onclick="showTab('orders')">Orders</button>
+                <button class="tab" onclick="showTab('addProduct')">Add Product</button>
+            </div>
+
+            <!-- Products Tab -->
+            <div id="productsTab" class="tab-content">
+                <h2>Products</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search products...">
+                    <button onclick="searchProducts()">Search</button>
+                    <button onclick="loadProducts()">Show All</button>
+                </div>
+                <div id="productsList" class="products-grid"></div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="ordersTab" class="tab-content" style="display:none;">
+                <h2>My Orders</h2>
+                <div id="ordersList"></div>
+            </div>
+
+            <!-- Add Product Tab -->
+            <div id="addProductTab" class="tab-content" style="display:none;">
+                <h2>Add Products</h2>
+                <div class="form-group">
+                    <input type="text" id="productName" placeholder="Product Name">
+                    <input type="text" id="productDescription" placeholder="Description">
+                    <input type="number" id="productPrice" placeholder="Price" step="0.01">
+                    <input type="number" id="productQuantity" placeholder="Quantity">
+                    <button onclick="addProduct()">Add Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h2>Place Order</h2>
+            <p id="orderProductName"></p>
+            <input type="number" id="orderQuantity" placeholder="Quantity" min="1">
+            <button onclick="placeOrder()">Place Order</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
