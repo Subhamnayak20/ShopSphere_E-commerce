@@ -9,6 +9,7 @@ app = FastAPI(title="Product Service")
 
 from typing import List
 
+# multiple ADD products (COMMITTED)
 @app.post("/products/add", response_model=list[ProductResponse])
 def add_multiple_products(
     products: List[ProductCreate],
@@ -38,7 +39,7 @@ def add_multiple_products(
 #     return db_product
 
 
-# 📦 GET all + SEARCH
+#  GET all SEARCH
 @app.get("/products", response_model=list[ProductResponse])
 def get_products(db: Session = Depends(get_db)):
     return db.query(ProductModel).all()
@@ -54,10 +55,6 @@ def search_products(name:str, db: Session = Depends(get_db)):
 
     return products
 
-
-
-
-# ✏️ UPDATE product (COMMITTED)
 @app.put("/products/{product_id}")
 def update_product(
     product_id: int,
