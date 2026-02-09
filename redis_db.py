@@ -1,4 +1,6 @@
 import os
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='redis_om')
 
 # Only attempt to import redis connection when USE_REDIS is enabled.
 USE_REDIS = os.getenv("USE_REDIS", "true").lower() == "true"
@@ -7,9 +9,9 @@ if USE_REDIS:
     try:
         from redis_om import get_redis_connection
         redis = get_redis_connection(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=int(os.getenv("REDIS_PORT", 6379)),
-            password=os.getenv("REDIS_PASSWORD", None),
+            host=os.getenv("REDIS_HOST", "redis-19105.crce263.ap-south-1-1.ec2.cloud.redislabs.com"),
+            port=int(os.getenv("REDIS_PORT", 11844)),
+            password=os.getenv("REDIS_PASSWORD", "Q4COyJ7Fe1VnGZc9iRnpZrG3pxXInymE"),
             decode_responses=True,
         )
     except Exception:
