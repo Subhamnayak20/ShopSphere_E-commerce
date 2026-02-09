@@ -1,7 +1,7 @@
 const API_BASE = {
-    user: 'http://127.0.0.1:8001',
-    product: 'http://127.0.0.1:8000',
-    order: 'http://127.0.0.1:8002'
+    user: 'http://localhost:8001',
+    product: 'http://localhost:8000',
+    order: 'http://localhost:8002'
 };
 
 let currentUser = null;
