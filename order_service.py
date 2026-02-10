@@ -19,6 +19,7 @@ orders_db = {}
 
 class OrderSchema(BaseModel):
     product_id: str
+    product_name: str
     quantity: int
 
 @app.get("/")
@@ -34,6 +35,7 @@ def place_order(order_data: OrderSchema):
     orders_db[order_id] = {
         "id": order_id,
         "product_id": order_data.product_id,
+        "product_name": order_data.product_name,
         "quantity": order_data.quantity,
         "status": "PLACED"
     }

@@ -6,6 +6,7 @@ const API_BASE = {
 
 let currentUser = null;
 let currentProductId = null;
+let currentProductName = null;
 
 // Auth Functions
 function showLogin() {
@@ -139,11 +140,18 @@ function displayProducts(products) {
             <p>${product.description || 'No description'}</p>
             <p class="price">$${product.price}</p>
             <p>Stock: ${product.quantity}</p>
-            <button onclick="openOrderModal('${product.id}', '${product.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${product.quantity})">
+            <button class="order-btn" data-id="${product.id}" data-name="${product.name}" data-quantity="${product.quantity}">
                 Order Now
             </button>
         </div>
     `).join('');
+    
+    // Add event listeners to all order buttons
+    document.querySelectorAll('.order-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            openOrderModal(this.dataset.id, this.dataset.name, parseInt(this.dataset.quantity));
+        });
+    });
 }
 
 async function addProduct() {
@@ -177,6 +185,7 @@ async function addProduct() {
 // Order Functions
 function openOrderModal(productId, productName, maxQuantity) {
     currentProductId = productId;
+    currentProductName = productName;
     document.getElementById('orderProductName').textContent = `Product: ${productName}`;
     document.getElementById('orderQuantity').max = maxQuantity;
     document.getElementById('orderModal').style.display = 'block';
@@ -201,6 +210,7 @@ async function placeOrder() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 product_id: currentProductId,
+                product_name: currentProductName,
                 quantity: quantity
             })
         });
@@ -240,8 +250,9 @@ function displayOrders(orders) {
     container.innerHTML = orders.map(order => `
         <div class="order-card">
             <h3>Order #${order.id}</h3>
-            <p>Product ID: ${order.product_id}</p>
-            <p>Quantity: ${order.quantity}</p>
+            <p><strong>Product:</strong> ${order.product_name}</p>
+            <p><strong>Product ID:</strong> ${order.product_id}</p>
+            <p><strong>Quantity:</strong> ${order.quantity}</p>
             <span class="status">${order.status}</span>
         </div>
     `).join('');
