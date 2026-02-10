@@ -361,64 +361,7 @@ JWT_SECRET=supersecret
 
 ## Running the Application
 
-### Option 1: Kubernetes (Recommended for Production)
-
-**Prerequisites:**
-- Kubernetes cluster (minikube, kind, or cloud provider)
-- kubectl CLI installed
-- NGINX Ingress Controller
-
-**Deploy:**
-```bash
-# Build images
-docker build -f Dockerfile.product -t shopsphere/product-service:latest .
-docker build -f Dockerfile.user -t shopsphere/user-service:latest .
-docker build -f Dockerfile.order -t shopsphere/order-service:latest .
-
-# Deploy to Kubernetes
-kubectl apply -f k8s/ -n shopsphere
-
-# Verify
-kubectl get pods -n shopsphere
-```
-
-**Access:** http://shopsphere.local/api/
-
-See [k8s/README.md](k8s/README.md) for detailed instructions.
-
-### Option 2: Docker Compose (Recommended for Local Staging)
-
-**Prerequisites:**
-- Docker Desktop installed
-- Docker Compose v3.8+
-
-**Start all services:**
-```bash
-docker-compose up -d
-```
-
-**View logs:**
-```bash
-docker-compose logs -f
-```
-
-**Stop all services:**
-```bash
-docker-compose down
-```
-
-**Stop and remove volumes:**
-```bash
-docker-compose down -v
-```
-
-**Service URLs:**
-- Product Service: http://localhost:8000/docs
-- User Service: http://localhost:8001/docs
-- Order Service: http://localhost:8002/docs
-- Redis: localhost:6379
-
-### Option 3: Start All Services (Windows PowerShell)
+### Option 1: Start All Services (Windows PowerShell)
 ```powershell
 .\start_all_services.ps1
 ```
@@ -428,7 +371,7 @@ This script automatically:
 - Starts all three services
 - Displays service URLs with Swagger documentation
 
-### Option 4: Start Services Individually
+### Option 2: Start Services Individually
 
 **Product Service:**
 ```bash
@@ -522,20 +465,6 @@ ShopSphere_E-commerce/
 ├── redis_db.py              # Redis connection configuration
 ├── in_memory_db.py          # In-memory database fallback
 ├── requirements.txt         # Python dependencies
-├── docker-compose.yml       # Docker Compose configuration
-├── Dockerfile.user          # User service Docker image
-├── Dockerfile.product       # Product service Docker image
-├── Dockerfile.order         # Order service Docker image
-├── .dockerignore            # Docker ignore patterns
-├── k8s/                     # Kubernetes manifests
-│   ├── namespace.yaml       # Namespace configuration
-│   ├── config.yaml          # ConfigMap and Secrets
-│   ├── redis.yaml           # Redis deployment
-│   ├── product-service.yaml # Product service deployment
-│   ├── user-service.yaml    # User service deployment
-│   ├── order-service.yaml   # Order service deployment
-│   ├── ingress.yaml         # Ingress configuration
-│   └── README.md            # Kubernetes deployment guide
 ├── start_all_services.ps1   # PowerShell startup script
 ├── test_connection.py       # Connection testing utility
 └── README.md               # Project documentation
@@ -566,7 +495,7 @@ All services support hot reload during development using the `--reload` flag wit
 
 ## Internship Project
 
-This project was developed as part of the **Zalimma Internship** program for Python Developer role, demonstrating:
+This project was developed as part of the **Zaalima Internship** program for Python Developer role, demonstrating:
 - Microservices architecture design
 - RESTful API development
 - Database integration (Redis and in-memory)
