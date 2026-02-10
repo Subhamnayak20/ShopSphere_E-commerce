@@ -342,12 +342,32 @@ git clone <repository-url>
 cd ShopSphere_E-commerce
 ```
 
-2. Install dependencies:
+2. Create and activate virtual environment:
+
+**Windows (PowerShell):**
+```powershell
+# Create virtual environment
+python -m venv .venv
+
+# Activate
+.\.venv\Scripts\Activate.ps1
+```
+
+**Linux/macOS:**
+```bash
+# Create virtual environment
+python3 -m venv .venv
+
+# Activate
+source .venv/bin/activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure environment variables (optional):
+4. Configure environment variables (optional):
 ```bash
 # Redis Configuration
 USE_REDIS=true
@@ -358,6 +378,8 @@ REDIS_PASSWORD=
 # JWT Configuration
 JWT_SECRET=supersecret
 ```
+
+**Note**: Virtual environment (`.venv/`) is already configured and isolated from system Python. See [VENV_GUIDE.md](VENV_GUIDE.md) for details.
 
 ## Running the Application
 
@@ -433,7 +455,13 @@ docker-compose down
 ```
 
 ### Option 4: Start All Services (Windows PowerShell)
+
+**Activate virtual environment first:**
 ```powershell
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
+
+# Run startup script
 .\start_all_services.ps1
 ```
 
@@ -442,7 +470,18 @@ This script automatically:
 - Starts all three services
 - Displays service URLs with Swagger documentation
 
-### Option 5: Start Services Individually
+### Option 5: Start Services Individually (Local Development)
+
+**Activate virtual environment first:**
+```bash
+# Windows
+.\.venv\Scripts\Activate.ps1
+
+# Linux/macOS
+source .venv/bin/activate
+```
+
+**Then start services:**
 
 **Product Service:**
 ```bash
@@ -458,6 +497,8 @@ uvicorn user_service:app --reload --host 127.0.0.1 --port 8001
 ```bash
 uvicorn order_service:app --reload --host 127.0.0.1 --port 8002
 ```
+
+**Note**: Virtual environment must be activated for local development. Docker deployments don't require virtual environment.
 
 ## API Documentation
 
@@ -530,6 +571,7 @@ curl -X POST http://localhost:8002/order \
 
 ```
 ShopSphere_E-commerce/
+├── .venv/                   # Virtual environment (isolated Python)
 ├── user_service.py           # User authentication service
 ├── product_service.py        # Product management service
 ├── order_service.py          # Order processing service
@@ -543,6 +585,7 @@ ShopSphere_E-commerce/
 ├── Dockerfile.product       # Product service Docker image
 ├── Dockerfile.order         # Order service Docker image
 ├── .dockerignore            # Docker ignore patterns
+├── .gitignore               # Git ignore patterns
 ├── k8s/                     # Kubernetes manifests
 │   ├── namespace.yaml       # Namespace configuration
 │   ├── config.yaml          # ConfigMap and Secrets
@@ -558,6 +601,9 @@ ShopSphere_E-commerce/
 ├── test_services.py         # Service validation script
 ├── LOAD_BALANCING.md        # Load balancing documentation
 ├── FIXES.md                 # Service fixes documentation
+├── VENV_GUIDE.md            # Virtual environment guide
+├── LB_QUICK_REF.md          # Load balancing quick reference
+├── LB_SUMMARY.md            # Load balancing summary
 └── README.md               # Project documentation
 ```
 
@@ -577,6 +623,25 @@ The application includes comprehensive error handling:
 - 503: Service Unavailable (inter-service communication failure)
 
 ## Development
+
+### Virtual Environment
+The application uses an isolated Python virtual environment (`.venv/`) to avoid conflicts with system packages.
+
+**Activate:**
+```bash
+# Windows
+.\.venv\Scripts\Activate.ps1
+
+# Linux/macOS
+source .venv/bin/activate
+```
+
+**Deactivate:**
+```bash
+deactivate
+```
+
+See [VENV_GUIDE.md](VENV_GUIDE.md) for complete virtual environment documentation.
 
 ### In-Memory Mode
 For development without Redis, the application automatically falls back to in-memory storage. Set `USE_REDIS=false` or ensure Redis is not available.
