@@ -139,7 +139,7 @@ function displayProducts(products) {
             <p>${product.description || 'No description'}</p>
             <p class="price">$${product.price}</p>
             <p>Stock: ${product.quantity}</p>
-            <button onclick="openOrderModal(${product.id}, '${product.name}', ${product.quantity})">
+            <button onclick="openOrderModal('${product.id}', '${product.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${product.quantity})">
                 Order Now
             </button>
         </div>

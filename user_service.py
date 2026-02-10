@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt
 from datetime import datetime, timezone
 import os
@@ -20,9 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = None  # Not using passlib
 SECRET_KEY = os.getenv("JWT_SECRET", "supersecret")
 ALGORITHM = "HS256"
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 class UserSchema(BaseModel):
     email: str
@@ -57,7 +63,7 @@ def register(user: UserSchema):
     
     users_db[user.email] = {
         "email": user.email,
-        "password": pwd_context.hash(user.password)
+        "password": hash_password(user.password)
     }
     
     return {"message": "User registered successfully", "email": user.email}
@@ -67,7 +73,7 @@ def login(data: LoginRequest):
     if data.email not in users_db:
         raise HTTPException(status_code=404, detail="User not found")
     
-    if not pwd_context.verify(data.password, users_db[data.email]["password"]):
+    if not verify_password(data.password, users_db[data.email]["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token_data = {"sub": data.email, "iat": datetime.now(timezone.utc).timestamp()}
