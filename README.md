@@ -14,6 +14,278 @@ The application follows a microservices architecture with three core services:
 - **Product Service** (Port 8000): Manages product catalog, inventory, and product queries
 - **Order Service** (Port 8002): Processes orders and validates product availability
 
+## C4 Model Architecture Diagrams
+
+### Level 1: System Context Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│                         ShopSphere                              │
+│                    E-commerce Platform                          │
+│                                                                 │
+│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐ │
+│  │    User      │      │   Product    │      │    Order     │ │
+│  │   Service    │      │   Service    │      │   Service    │ │
+│  │  (Port 8001) │      │ (Port 8000)  │      │ (Port 8002)  │ │
+│  └──────────────┘      └──────────────┘      └──────────────┘ │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+         ▲                                                ▲
+         │                                                │
+         │                                                │
+    ┌────┴────┐                                     ┌────┴────┐
+    │  Web    │                                     │ Mobile  │
+    │ Client  │                                     │  App    │
+    └─────────┘                                     └─────────┘
+```
+
+### Level 2: Container Diagram with API Gateway
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                          ShopSphere Platform                               │
+│                                                                            │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                        API Gateway (Future)                       │    │
+│  │                    [Port 8080 - Not Implemented]                  │    │
+│  │  • Request Routing                                                │    │
+│  │  • Load Balancing                                                 │    │
+│  │  • Authentication/Authorization                                   │    │
+│  │  • Rate Limiting                                                  │    │
+│  └────────┬─────────────────────┬─────────────────────┬─────────────┘    │
+│           │                     │                     │                   │
+│           │ REST/HTTP           │ REST/HTTP           │ REST/HTTP         │
+│           ▼                     ▼                     ▼                   │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐        │
+│  │  User Service   │   │ Product Service │   │  Order Service  │        │
+│  │   [FastAPI]     │   │    [FastAPI]    │   │    [FastAPI]    │        │
+│  │   Port 8001     │   │   Port 8000     │   │   Port 8002     │        │
+│  │                 │   │                 │   │                 │        │
+│  │ • Registration  │   │ • CRUD Products │   │ • Place Orders  │        │
+│  │ • Login/JWT     │   │ • Inventory Mgmt│   │ • Order Status  │        │
+│  │ • Auth          │   │ • Search        │   │ • Validation    │        │
+│  └────────┬────────┘   └────────┬────────┘   └────────┬────────┘        │
+│           │                     │                     │                   │
+│           │                     │                     │ REST API          │
+│           │                     │                     │ (requests lib)    │
+│           │                     │◄────────────────────┘                   │
+│           │                     │  GET /products/{id}                     │
+│           │                     │  (Product Validation)                   │
+│           ▼                     ▼                     ▼                   │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │                    Data Storage Layer                        │        │
+│  │                                                               │        │
+│  │  ┌──────────────┐              ┌──────────────┐             │        │
+│  │  │    Redis     │              │  In-Memory   │             │        │
+│  │  │   Database   │      OR      │   Database   │             │        │
+│  │  │ (redis-om)   │              │   (Fallback) │             │        │
+│  │  └──────────────┘              └──────────────┘             │        │
+│  └───────────────────────────────────────────────────────────────┘        │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Level 3: Component Diagram - Inter-Service Communication
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Inter-Service Communication Flow                     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────┐                                          ┌──────────────┐
+│   Client     │                                          │   Client     │
+│ Application  │                                          │ Application  │
+└──────┬───────┘                                          └──────┬───────┘
+       │                                                         │
+       │ 1. POST /register                                       │
+       │    {email, password}                                    │
+       ▼                                                         │
+┌─────────────────┐                                             │
+│  User Service   │                                             │
+│   Port 8001     │                                             │
+│                 │                                             │
+│  ┌───────────┐  │                                             │
+│  │  Auth     │  │                                             │
+│  │ Component │  │                                             │
+│  │           │  │                                             │
+│  │ • bcrypt  │  │                                             │
+│  │ • JWT     │  │                                             │
+│  └───────────┘  │                                             │
+└─────────────────┘                                             │
+                                                                │
+       2. POST /login                                           │
+          Returns: JWT Token                                    │
+                                                                │
+                                                                │
+                                                                │ 3. POST /products
+                                                                │    {name, price, qty}
+                                                                ▼
+                                                         ┌─────────────────┐
+                                                         │ Product Service │
+                                                         │   Port 8000     │
+                                                         │                 │
+                                                         │  ┌───────────┐  │
+                                                         │  │ Inventory │  │
+                                                         │  │ Component │  │
+                                                         │  │           │  │
+                                                         │  │ • CRUD    │  │
+                                                         │  │ • Search  │  │
+                                                         │  └───────────┘  │
+                                                         └────────┬────────┘
+                                                                  │
+       ┌──────────────────────────────────────────────────────────┘
+       │
+       │ 4. Order Placement Flow
+       │
+┌──────┴───────┐
+│   Client     │
+│ Application  │
+└──────┬───────┘
+       │
+       │ 5. POST /order
+       │    {product_id, quantity}
+       ▼
+┌─────────────────┐          REST API Call (HTTP)          ┌─────────────────┐
+│  Order Service  │────────────────────────────────────────>│ Product Service │
+│   Port 8002     │  GET /products/{product_id}            │   Port 8000     │
+│                 │                                         │                 │
+│  ┌───────────┐  │  6. Validate Product Availability      │  ┌───────────┐  │
+│  │  Order    │  │     • Check product exists             │  │ Inventory │  │
+│  │Processing │  │     • Verify quantity                  │  │ Component │  │
+│  │ Component │  │                                         │  └───────────┘  │
+│  │           │  │<────────────────────────────────────────│                 │
+│  │ • Create  │  │  Returns: Product Details              │                 │
+│  │ • Validate│  │  {id, name, price, quantity}           │                 │
+│  └───────────┘  │                                         └─────────────────┘
+│                 │
+│  7. Create Order│
+│     if valid    │
+└─────────────────┘
+```
+
+### Level 4: Communication Protocols & Patterns
+
+#### Current Implementation: REST/HTTP
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    REST API Communication                       │
+└─────────────────────────────────────────────────────────────────┘
+
+Order Service ──────────────────────> Product Service
+                REST/HTTP
+                
+  Protocol: HTTP/1.1
+  Method: GET
+  Endpoint: http://localhost:8000/products/{product_id}
+  Headers: 
+    - Content-Type: application/json
+  Response Format: JSON
+  Library: Python requests
+  
+  Flow:
+  1. Order Service receives order request
+  2. Makes synchronous HTTP GET to Product Service
+  3. Validates product exists and has sufficient quantity
+  4. Creates order if validation passes
+  5. Returns order confirmation or error
+
+  Error Handling:
+  • 404: Product not found
+  • 400: Insufficient quantity
+  • 503: Product Service unavailable
+```
+
+#### Future Enhancement: gRPC (Recommended)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    gRPC Communication (Future)                  │
+└─────────────────────────────────────────────────────────────────┘
+
+Order Service ══════════════════════> Product Service
+                gRPC/HTTP2
+                
+  Protocol: HTTP/2
+  Method: RPC Call
+  Service: ProductService.GetProduct()
+  Message Format: Protocol Buffers
+  
+  Benefits:
+  • Faster serialization (Protocol Buffers vs JSON)
+  • Bi-directional streaming support
+  • Built-in code generation
+  • Better performance for inter-service calls
+  • Type-safe contracts
+  
+  Proto Definition Example:
+  
+  service ProductService {
+    rpc GetProduct(ProductRequest) returns (ProductResponse);
+    rpc CheckAvailability(AvailabilityRequest) returns (AvailabilityResponse);
+  }
+```
+
+### Communication Matrix
+
+| Source Service | Target Service | Protocol | Endpoint | Purpose |
+|----------------|----------------|----------|----------|----------|
+| Client | User Service | REST/HTTP | POST /register | User registration |
+| Client | User Service | REST/HTTP | POST /login | Authentication |
+| Client | Product Service | REST/HTTP | POST /products | Create product |
+| Client | Product Service | REST/HTTP | GET /products | List products |
+| Client | Product Service | REST/HTTP | GET /products/{id} | Get product details |
+| Client | Order Service | REST/HTTP | POST /order | Place order |
+| Client | Order Service | REST/HTTP | GET /orders | List orders |
+| **Order Service** | **Product Service** | **REST/HTTP** | **GET /products/{id}** | **Validate product** |
+
+### Data Flow Sequence
+
+```
+Complete Order Placement Flow:
+
+┌────────┐      ┌──────────┐      ┌─────────────┐      ┌─────────────┐
+│ Client │      │   User   │      │   Order     │      │   Product   │
+│        │      │ Service  │      │  Service    │      │   Service   │
+└───┬────┘      └────┬─────┘      └──────┬──────┘      └──────┬──────┘
+    │                │                    │                    │
+    │ 1. Register    │                    │                    │
+    │───────────────>│                    │                    │
+    │                │                    │                    │
+    │ 2. Login       │                    │                    │
+    │───────────────>│                    │                    │
+    │<───────────────│                    │                    │
+    │   JWT Token    │                    │                    │
+    │                │                    │                    │
+    │                │                    │  3. Create Product │
+    │────────────────┼────────────────────┼───────────────────>│
+    │                │                    │                    │
+    │ 4. Place Order │                    │                    │
+    │────────────────┼───────────────────>│                    │
+    │                │                    │                    │
+    │                │                    │ 5. Validate Product│
+    │                │                    │───────────────────>│
+    │                │                    │<───────────────────│
+    │                │                    │  Product Details   │
+    │                │                    │                    │
+    │                │                    │ 6. Check Quantity  │
+    │                │                    │                    │
+    │                │                    │ 7. Create Order    │
+    │<───────────────┼────────────────────│                    │
+    │  Order Confirm │                    │                    │
+    │                │                    │                    │
+```
+
+### Architecture Patterns
+
+- **Pattern**: Microservices Architecture
+- **Communication**: Synchronous REST API calls
+- **Service Discovery**: Direct URL configuration (localhost)
+- **Data Storage**: Redis (primary) / In-Memory (fallback)
+- **Authentication**: JWT-based token authentication
+- **API Style**: RESTful HTTP/JSON
+- **Error Handling**: HTTP status codes with JSON error responses
+
 ## Features
 
 ### User Service
