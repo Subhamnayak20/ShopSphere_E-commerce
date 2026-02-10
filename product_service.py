@@ -47,13 +47,13 @@ def add_multiple_products(products: List[ProductCreate]):
 def get_products():
     return list(products_db.values())
 
+@app.get("/products/search")
+def search_products(name: str):
+    results = [p for p in products_db.values() if name.lower() in p["name"].lower()]
+    return results
+
 @app.get("/products/{product_id}")
 def get_product(product_id: str):
     if product_id not in products_db:
         raise HTTPException(status_code=404, detail="Product not found")
     return products_db[product_id]
-
-@app.get("/products/search")
-def search_products(name: str):
-    results = [p for p in products_db.values() if name.lower() in p["name"].lower()]
-    return results

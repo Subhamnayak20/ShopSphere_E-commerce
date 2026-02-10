@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import jwt
-import datetime
+from datetime import datetime, timezone
 import os
 
 # In-memory database
@@ -28,6 +28,14 @@ class UserSchema(BaseModel):
     email: str
     password: str
 
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "password": "securepass123"
+            }
+        }
+
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -38,15 +46,21 @@ def root():
 
 @app.post("/register")
 def register(user: UserSchema):
+    if not user.email or not user.password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    
     if user.email in users_db:
         raise HTTPException(status_code=400, detail="User already exists")
+    
+    if len(user.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     
     users_db[user.email] = {
         "email": user.email,
         "password": pwd_context.hash(user.password)
     }
     
-    return {"message": "User registered successfully"}
+    return {"message": "User registered successfully", "email": user.email}
 
 @app.post("/login")
 def login(data: LoginRequest):
@@ -56,6 +70,6 @@ def login(data: LoginRequest):
     if not pwd_context.verify(data.password, users_db[data.email]["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    token_data = {"sub": data.email, "iat": datetime.datetime.utcnow().timestamp()}
+    token_data = {"sub": data.email, "iat": datetime.now(timezone.utc).timestamp()}
     token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
     return {"message": "Login successful", "token": token}
