@@ -5,15 +5,15 @@ echo ========================================
 echo.
 
 echo [1/4] Starting User Service...
-start "User Service - Port 8001" cmd /k "python -m uvicorn user_service:app --host 127.0.0.1 --port 8001"
+start "User Service - Port 8001" cmd /k "python -m uvicorn user_service:app --host 0.0.0.0 --port 8001"
 timeout /t 2 /nobreak >nul
 
 echo [2/4] Starting Product Service...
-start "Product Service - Port 8000" cmd /k "python -m uvicorn product_service:app --host 127.0.0.1 --port 8000"
+start "Product Service - Port 8000" cmd /k "python -m uvicorn product_service:app --host 0.0.0.0 --port 8000"
 timeout /t 2 /nobreak >nul
 
 echo [3/4] Starting Order Service...
-start "Order Service - Port 8002" cmd /k "python -m uvicorn order_service:app --host 127.0.0.1 --port 8002"
+start "Order Service - Port 8002" cmd /k "python -m uvicorn order_service:app --host 0.0.0.0 --port 8002"
 timeout /t 2 /nobreak >nul
 
 echo [4/4] Starting Frontend Server...
@@ -26,9 +26,9 @@ echo All services started successfully!
 echo ========================================
 echo.
 echo Backend Services:
-echo   User Service:    http://127.0.0.1:8001/docs
-echo   Product Service: http://127.0.0.1:8000/docs
-echo   Order Service:   http://127.0.0.1:8002/docs
+echo   User Service:    http://localhost:8001/docs
+echo   Product Service: http://localhost:8000/docs
+echo   Order Service:   http://localhost:8002/docs
 echo.
 echo Frontend:
 echo   Website: http://localhost:5500
