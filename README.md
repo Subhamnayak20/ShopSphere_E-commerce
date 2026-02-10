@@ -361,7 +361,39 @@ JWT_SECRET=supersecret
 
 ## Running the Application
 
-### Option 1: Start All Services (Windows PowerShell)
+### Option 1: Docker Compose (Recommended for Local Staging)
+
+**Prerequisites:**
+- Docker Desktop installed
+- Docker Compose v3.8+
+
+**Start all services:**
+```bash
+docker-compose up -d
+```
+
+**View logs:**
+```bash
+docker-compose logs -f
+```
+
+**Stop all services:**
+```bash
+docker-compose down
+```
+
+**Stop and remove volumes:**
+```bash
+docker-compose down -v
+```
+
+**Service URLs:**
+- Product Service: http://localhost:8000/docs
+- User Service: http://localhost:8001/docs
+- Order Service: http://localhost:8002/docs
+- Redis: localhost:6379
+
+### Option 2: Start All Services (Windows PowerShell)
 ```powershell
 .\start_all_services.ps1
 ```
@@ -371,7 +403,7 @@ This script automatically:
 - Starts all three services
 - Displays service URLs with Swagger documentation
 
-### Option 2: Start Services Individually
+### Option 3: Start Services Individually
 
 **Product Service:**
 ```bash
@@ -465,6 +497,11 @@ ShopSphere_E-commerce/
 ├── redis_db.py              # Redis connection configuration
 ├── in_memory_db.py          # In-memory database fallback
 ├── requirements.txt         # Python dependencies
+├── docker-compose.yml       # Docker Compose configuration
+├── Dockerfile.user          # User service Docker image
+├── Dockerfile.product       # Product service Docker image
+├── Dockerfile.order         # Order service Docker image
+├── .dockerignore            # Docker ignore patterns
 ├── start_all_services.ps1   # PowerShell startup script
 ├── test_connection.py       # Connection testing utility
 └── README.md               # Project documentation
