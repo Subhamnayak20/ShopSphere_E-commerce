@@ -36,6 +36,9 @@ kubectl apply -f k8s/order-service.yaml -n shopsphere
 
 # Deploy Ingress
 kubectl apply -f k8s/ingress.yaml -n shopsphere
+
+# Deploy HPA (Horizontal Pod Autoscaler)
+kubectl apply -f k8s/hpa.yaml -n shopsphere
 ```
 
 ### 3. Verify Deployment
@@ -72,15 +75,30 @@ kubectl apply -f k8s/ -n shopsphere
 ## Scaling
 
 ```bash
-# Scale product service
+# Manual scaling
 kubectl scale deployment product-service --replicas=3 -n shopsphere
-
-# Scale user service
 kubectl scale deployment user-service --replicas=3 -n shopsphere
-
-# Scale order service
 kubectl scale deployment order-service --replicas=3 -n shopsphere
+
+# Check HPA status
+kubectl get hpa -n shopsphere
+
+# Watch auto-scaling in action
+kubectl get hpa -n shopsphere --watch
 ```
+
+## Load Balancing
+
+Kubernetes provides built-in load balancing:
+- **Service Load Balancing**: Round-robin across pod replicas
+- **Ingress Load Balancing**: NGINX ingress controller distributes external traffic
+- **Auto-scaling**: HPA scales pods based on CPU (70%) and Memory (80%) utilization
+
+### HPA Configuration
+- Min replicas: 2
+- Max replicas: 10
+- CPU threshold: 70%
+- Memory threshold: 80%
 
 ## Monitoring
 

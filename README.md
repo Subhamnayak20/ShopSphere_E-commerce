@@ -361,7 +361,78 @@ JWT_SECRET=supersecret
 
 ## Running the Application
 
-### Option 1: Start All Services (Windows PowerShell)
+### Option 1: Kubernetes (Recommended for Production)
+
+**Prerequisites:**
+- Kubernetes cluster (minikube, kind, or cloud provider)
+- kubectl CLI installed
+- NGINX Ingress Controller
+
+**Deploy:**
+```bash
+# Build images
+docker build -f Dockerfile.product -t shopsphere/product-service:latest .
+docker build -f Dockerfile.user -t shopsphere/user-service:latest .
+docker build -f Dockerfile.order -t shopsphere/order-service:latest .
+
+# Deploy to Kubernetes
+kubectl apply -f k8s/ -n shopsphere
+
+# Verify
+kubectl get pods -n shopsphere
+```
+
+**Access:** http://shopsphere.local/api/
+
+See [k8s/README.md](k8s/README.md) for detailed instructions.
+
+### Option 2: Docker Compose with Load Balancing (Recommended for Staging)
+
+**Prerequisites:**
+- Docker Desktop installed
+- Docker Compose v3.8+
+
+**Start with load balancing (2 instances per service + NGINX):**
+```bash
+docker-compose -f docker-compose.lb.yml up -d
+```
+
+**Access via NGINX Load Balancer:**
+- All services: http://localhost/api/
+- Product Service: http://localhost/api/products
+- User Service: http://localhost/api/users
+- Order Service: http://localhost/api/orders
+
+**View logs:**
+```bash
+docker-compose -f docker-compose.lb.yml logs -f
+```
+
+**Stop:**
+```bash
+docker-compose -f docker-compose.lb.yml down
+```
+
+See [LOAD_BALANCING.md](LOAD_BALANCING.md) for detailed configuration.
+
+### Option 3: Docker Compose (Simple)
+
+**Start all services:**
+```bash
+docker-compose up -d
+```
+
+**Service URLs:**
+- Product Service: http://localhost:8000/docs
+- User Service: http://localhost:8001/docs
+- Order Service: http://localhost:8002/docs
+
+**Stop:**
+```bash
+docker-compose down
+```
+
+### Option 4: Start All Services (Windows PowerShell)
 ```powershell
 .\start_all_services.ps1
 ```
@@ -371,7 +442,7 @@ This script automatically:
 - Starts all three services
 - Displays service URLs with Swagger documentation
 
-### Option 2: Start Services Individually
+### Option 5: Start Services Individually
 
 **Product Service:**
 ```bash
@@ -465,8 +536,28 @@ ShopSphere_E-commerce/
 ├── redis_db.py              # Redis connection configuration
 ├── in_memory_db.py          # In-memory database fallback
 ├── requirements.txt         # Python dependencies
+├── docker-compose.yml       # Docker Compose configuration
+├── docker-compose.lb.yml    # Docker Compose with load balancing
+├── nginx.conf               # NGINX load balancer configuration
+├── Dockerfile.user          # User service Docker image
+├── Dockerfile.product       # Product service Docker image
+├── Dockerfile.order         # Order service Docker image
+├── .dockerignore            # Docker ignore patterns
+├── k8s/                     # Kubernetes manifests
+│   ├── namespace.yaml       # Namespace configuration
+│   ├── config.yaml          # ConfigMap and Secrets
+│   ├── redis.yaml           # Redis deployment
+│   ├── product-service.yaml # Product service deployment
+│   ├── user-service.yaml    # User service deployment
+│   ├── order-service.yaml   # Order service deployment
+│   ├── ingress.yaml         # Ingress configuration
+│   ├── hpa.yaml             # Horizontal Pod Autoscaler
+│   └── README.md            # Kubernetes deployment guide
 ├── start_all_services.ps1   # PowerShell startup script
 ├── test_connection.py       # Connection testing utility
+├── test_services.py         # Service validation script
+├── LOAD_BALANCING.md        # Load balancing documentation
+├── FIXES.md                 # Service fixes documentation
 └── README.md               # Project documentation
 ```
 
@@ -502,6 +593,10 @@ This project was developed as part of the **Zaalima Internship** program for Pyt
 - Authentication and authorization
 - Inter-service communication
 - Error handling and validation
+- Docker containerization
+- Kubernetes orchestration
+- Load balancing and high availability
+- Horizontal pod autoscaling
 
 ## License
 
