@@ -1,7 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uuid
+from sqlalchemy.orm import Session
+
+from models import ProductModel
+from schemas import ProductCreate, ProductResponse
+from deps import get_db
+
 
 app = FastAPI(title="Order Service")
 
@@ -49,6 +55,13 @@ def place_order(order_data: OrderSchema):
 @app.get("/orders")
 def get_orders():
     return list(orders_db.values())
+
+@app.get("/orders/{order_id}")
+def get_order(order_id: str):
+    if order_id not in orders_db:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return orders_db[order_id]
+
 
 @app.get("/orders/{order_id}")
 def get_order(order_id: str):

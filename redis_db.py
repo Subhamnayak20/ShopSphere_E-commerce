@@ -1,5 +1,7 @@
 import os
 import warnings
+import redis
+
 warnings.filterwarnings('ignore', category=UserWarning, module='redis_om')
 
 # Only attempt to import redis connection when USE_REDIS is enabled.
@@ -19,3 +21,15 @@ if USE_REDIS:
         redis = None
 else:
     redis = None
+    
+redis_client = redis.Redis(
+    host="localhost",
+    port=6379,
+    decode_responses=True
+)
+
+try:
+    redis_client.ping()
+    print("✅ Connected to Local Redis")
+except redis.ConnectionError:
+    print("❌ Redis is not running")
