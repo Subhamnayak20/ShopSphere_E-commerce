@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: shopsphere-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopsphere-network
+
+  # Product Service - Instance 1
+  product-service-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.product
+    container_name: shopsphere-product-1
+    environment:
+      - USE_REDIS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - shopsphere-network
+
+  # Product Service - Instance 2
+  product-service-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.product
+    container_name: shopsphere-product-2
+    environment:
+      - USE_REDIS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - shopsphere-network
+
+  # User Service - Instance 1
+  user-service-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: shopsphere-user-1
+    environment:
+      - USE_REDIS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=supersecret
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - shopsphere-network
+
+  # User Service - Instance 2
+  user-service-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: shopsphere-user-2
+    environment:
+      - USE_REDIS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=supersecret
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - shopsphere-network
+
+  # Order Service - Instance 1
+  order-service-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    container_name: shopsphere-order-1
+    environment:
+      - USE_REDIS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://nginx/api/products
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - shopsphere-network
+
+  # Order Service - Instance 2
+  order-service-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    container_name: shopsphere-order-2
+    environment:
+      - USE_REDIS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://nginx/api/products
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - shopsphere-network
+
+  # NGINX Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: shopsphere-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - product-service-1
+      - product-service-2
+      - user-service-1
+      - user-service-2
+      - order-service-1
+      - order-service-2
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - shopsphere-network
+
+networks:
+  shopsphere-network:
+    driver: bridge
+
+volumes:
+  redis_data:
